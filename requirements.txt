@@ -1,0 +1,8 @@
+aiohttp==3.11.14
+fastapi[standard]
+uvicorn==0.34.0
+pymongo==4.11.3
+pydantic==2.10.6
+odmantic==1.0.2
+tenacity==9.0.0
+python-dateutil==2.9.0

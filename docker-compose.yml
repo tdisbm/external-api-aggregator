@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  fastapi-app:
+    build:
+      context: .
+      target: app-base
+    command: ["fastapi", "run", "app/fastapi-app.py", "--port", "8000"]
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo-init
+
+  polling-app:
+    build:
+      context: .
+      target: app-base
+    command: ["python", "-m", "app.polling-app"]
+    environment:
+      PYTHONPATH: "/app"
+    env_file:
+      - .env
+    depends_on:
+      - mongo-init
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    command: ["sh", "-c", "mongod --replSet rs0 --bind_ip 0.0.0.0"]
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --host localhost:27017 --eval -u root -p 27017
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  mongo-init:
+    image: mongo:latest
+    depends_on:
+      - mongo
+    entrypoint: [ "/bin/sh", "-c", "sleep 10 && /scripts/init-mongo.sh" ]
+    volumes:
+      - ./init-mongo.sh:/scripts/init-mongo.sh
+
+volumes:
+  mongo_data:
