@@ -24,6 +24,9 @@ def run_hosts_polling(polling_config: Dict):  # May be generified, but not now
             hosts_existing = find_similar_hosts(hosts=hosts)
             hosts_unique = HostAggregator().aggregate(models=hosts + hosts_existing)
             with Session() as session:
+                # Delete already existing host because they are merged with latest batch fetched from API.
+                # Delete operation may be excluded since we update already existing hosts, but hey, let's leave it
+                # just in case
                 delete_hosts(hosts=hosts_unique, session=session)
                 update_hosts(hosts=hosts_unique, session=session)
             logger.info(f"[+] Polling iteration complete: Applying delay of {polling_config.poll_interval_s}s")
